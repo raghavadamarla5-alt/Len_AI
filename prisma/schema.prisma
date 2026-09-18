@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                      String      @id @default(uuid())
+  name                    String
+  mobile                  String      @unique
+  email                   String?     @unique
+  avatarUrl               String?
+  address                 String?
+  state                   String?
+  district                String?
+  municipality            String?
+  verifiedIdentityStatus  Boolean     @default(false)
+  preferredLanguage       String      @default("en")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  complaints              Complaint[]
+}
+
+model Location {
+  id                 String      @id @default(uuid())
+  state              String
+  district           String
+  city               String?
+  town               String?
+  village            String?
+  mandal             String?
+  pincode            String?
+  latitude           Float?
+  longitude          Float?
+  administrativeCode String?
+  complaints         Complaint[]
+}
+
+model Authority {
+  id                String             @id @default(uuid())
+  name              String
+  level             String
+  state             String?
+  district          String?
+  jurisdiction      String?
+  serviceCategories String?
+  portals           GovernmentPortal[]
+  complaints        Complaint[]
+}
+
+model GovernmentPortal {
+  id                 String    @id @default(uuid())
+  authorityId        String
+  serviceName        String
+  officialUrl        String
+  submissionMethod   String
+  statusTrackingUrl  String?
+  lastVerified       DateTime  @default(now())
+  authority          Authority @relation(fields: [authorityId], references: [id])
+}
+
+model Problem {
+  id          String      @id @default(uuid())
+  category    String
+  subcategory String?
+  description String?
+  complaints  Complaint[]
+}
+
+model Complaint {
+  id                       String      @id @default(uuid())
+  userId                   String
+  locationId               String
+  authorityId              String?
+  problemId                String
+  description              String
+  status                   String      @default("Draft")
+  officialReferenceNumber  String?
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  user                     User        @relation(fields: [userId], references: [id])
+  location                 Location    @relation(fields: [locationId], references: [id])
+  authority                Authority?  @relation(fields: [authorityId], references: [id])
+  problem                  Problem     @relation(fields: [problemId], references: [id])
+  evidence                 Evidence[]
+  messages                 Message[]
+}
+
+model Evidence {
+  id          String    @id @default(uuid())
+  complaintId String
+  fileType    String
+  filePath    String
+  metadata    Json?
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+}
+
+model Message {
+  id                 String    @id @default(uuid())
+  complaintId        String
+  aiGeneratedMessage String
+  userEditedMessage  String?
+  finalMessage       String?
+  complaint          Complaint @relation(fields: [complaintId], references: [id])
+}
