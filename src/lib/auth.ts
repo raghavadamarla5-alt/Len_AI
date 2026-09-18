@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { db } from './mockDb';
 
-export function getSessionUser() {
-  const cookieStore = cookies();
+export async function getSessionUser() {
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get('auth_session')?.value;
 
   if (!sessionId) {
